@@ -34,15 +34,13 @@ struct TempDirFixture
 
 } // namespace
 
-BOOST_FIXTURE_TEST_SUITE(split, TempDirFixture)
-
-BOOST_AUTO_TEST_CASE(bla)
+BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
 {
     // given
     const auto my_splitter = [](const gwasm::Args& args,
                                 gwasm::SplitContext& context) {
-        auto out = std::vector<std::tuple<gwasm::Blob, int>>{};
-        for (int i = 0; i < 4; ++i) {
+        auto out = std::vector<std::tuple<gwasm::Blob, int, gwasm::Output>>{};
+        for (int i = 0; i < 2; ++i) {
             auto output = context.new_blob();
             {
                 auto f = output.open();
@@ -50,7 +48,8 @@ BOOST_AUTO_TEST_CASE(bla)
                     f << arg << '\n';
                 }
             }
-            out.push_back(std::make_tuple(std::move(output).to_blob(), i));
+            out.push_back(std::make_tuple(
+                std::move(output).to_blob(), i, context.new_blob()));
         }
         return out;
     };
@@ -68,9 +67,9 @@ BOOST_AUTO_TEST_CASE(bla)
         const auto expected_files = std::set{
             temp_dir / "tasks.json",
             temp_dir / "000000.bin",
-            temp_dir / "000001.bin",
+            // temp_dir / "000001.bin",
             temp_dir / "000002.bin",
-            temp_dir / "000003.bin",
+            // temp_dir / "000003.bin",
         };
         const auto actual_files =
             std::set(std::filesystem::directory_iterator{temp_dir},
@@ -84,16 +83,14 @@ BOOST_AUTO_TEST_CASE(bla)
         const auto expected_json = json::array(
             {json::array(
                  {json::object({{"blob", (temp_dir / "000000.bin").string()}}),
-                  json::object({{"meta", 0}})}),
-             json::array(
-                 {json::object({{"blob", (temp_dir / "000001.bin").string()}}),
-                  json::object({{"meta", 1}})}),
+                  json::object({{"meta", 0}}),
+                  json::object(
+                      {{"output", (temp_dir / "000001.bin").string()}})}),
              json::array(
                  {json::object({{"blob", (temp_dir / "000002.bin").string()}}),
-                  json::object({{"meta", 2}})}),
-             json::array(
-                 {json::object({{"blob", (temp_dir / "000003.bin").string()}}),
-                  json::object({{"meta", 3}})})});
+                  json::object({{"meta", 1}}),
+                  json::object(
+                      {{"output", (temp_dir / "000003.bin").string()}})})});
         const auto actual_json = [&] {
             auto j = json{};
             std::ifstream{temp_dir / "tasks.json"} >> j;
@@ -102,5 +99,3 @@ BOOST_AUTO_TEST_CASE(bla)
         BOOST_CHECK_EQUAL(expected_json, actual_json);
     }
 }
-
-BOOST_AUTO_TEST_SUITE_END() // split
