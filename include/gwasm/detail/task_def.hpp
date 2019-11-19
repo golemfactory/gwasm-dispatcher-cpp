@@ -78,6 +78,21 @@ struct adl_serializer<gwasm::detail::TaskArg>
                        }},
                    task_arg);
     }
+
+    static void from_json(const json& j, gwasm::detail::TaskArg& task_arg)
+    {
+        std::visit(gwasm::detail::overloaded{
+                       [&](gwasm::detail::TaskArgMeta& meta) {
+                           meta.value = j.at("meta");
+                       },
+                       [&](gwasm::detail::TaskArgBlob& blob) {
+                           j.at("blob").get_to(blob.path);
+                       },
+                       [&](gwasm::detail::TaskArgOutput& output) {
+                           j.at("output").get_to(output.path);
+                       }},
+                   task_arg);
+    }
 };
 
 } // namespace nlohmann
