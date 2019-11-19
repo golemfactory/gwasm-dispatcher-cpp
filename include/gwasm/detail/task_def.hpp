@@ -44,6 +44,19 @@ to_arg(const Blob& blob, const std::filesystem::path&);
 TaskArg
 to_arg(const Output& output, const std::filesystem::path&);
 
+template <typename T>
+void
+from_arg(T& v, const TaskArg& arg, const std::filesystem::path&)
+{
+    v = std::get<TaskArgMeta>(arg).value;
+}
+
+void
+from_arg(Blob& blob, const TaskArg& arg, const std::filesystem::path&);
+
+void
+from_arg(Output& output, const TaskArg& arg, const std::filesystem::path&);
+
 } // namespace gwasm::detail
 
 namespace nlohmann {
