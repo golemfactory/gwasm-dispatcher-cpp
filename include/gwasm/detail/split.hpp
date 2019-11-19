@@ -38,7 +38,7 @@ split_step(Split&& split, const SplitArgs& args)
         auto json_work_item_desc = json::array();
         for_each_in_tuple(
             [&](const auto& i) {
-                json_work_item_desc.push_back(into_arg(i, {}));
+                json_work_item_desc.push_back(to_arg(i, {}));
             },
             work_item_desc);
         json_tasks.push_back(std::move(json_work_item_desc));

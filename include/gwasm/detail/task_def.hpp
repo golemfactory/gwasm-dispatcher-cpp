@@ -33,16 +33,16 @@ using TaskArg = std::variant<TaskArgMeta, TaskArgBlob, TaskArgOutput>;
 
 template <typename T>
 TaskArg
-into_arg(const T& v, const std::filesystem::path&)
+to_arg(const T& v, const std::filesystem::path&)
 {
     return TaskArgMeta{v};
 }
 
 TaskArg
-into_arg(const Blob& blob, const std::filesystem::path&);
+to_arg(const Blob& blob, const std::filesystem::path&);
 
 TaskArg
-into_arg(const Output& output, const std::filesystem::path&);
+to_arg(const Output& output, const std::filesystem::path&);
 
 } // namespace gwasm::detail
 
