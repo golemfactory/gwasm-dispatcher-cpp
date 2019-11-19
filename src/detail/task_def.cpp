@@ -27,3 +27,43 @@ from_arg(Output& output, const TaskArg& arg, const std::filesystem::path&)
 }
 
 } // namespace gwasm::detail
+
+namespace nlohmann {
+
+void
+adl_serializer<gwasm::detail::TaskArg>::to_json(
+    json& j,
+    const gwasm::detail::TaskArg& task_arg)
+{
+    std::visit(gwasm::detail::overloaded{
+                   [&](const gwasm::detail::TaskArgMeta& meta) {
+                       j["meta"] = meta.value;
+                   },
+                   [&](const gwasm::detail::TaskArgBlob& blob) {
+                       j["blob"] = blob.path;
+                   },
+                   [&](const gwasm::detail::TaskArgOutput& output) {
+                       j["output"] = output.path;
+                   }},
+               task_arg);
+}
+
+void
+adl_serializer<gwasm::detail::TaskArg>::from_json(
+    const json& j,
+    gwasm::detail::TaskArg& task_arg)
+{
+    std::visit(
+        gwasm::detail::overloaded{[&](gwasm::detail::TaskArgMeta& meta) {
+                                      meta.value = j.at("meta");
+                                  },
+                                  [&](gwasm::detail::TaskArgBlob& blob) {
+                                      j.at("blob").get_to(blob.path);
+                                  },
+                                  [&](gwasm::detail::TaskArgOutput& output) {
+                                      j.at("output").get_to(output.path);
+                                  }},
+        task_arg);
+}
+
+} // namespace nlohmann
