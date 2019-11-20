@@ -8,6 +8,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../error.hpp"
 #include "args.hpp"
 #include "task_def.hpp"
 #include "utils.hpp"
@@ -21,7 +22,7 @@ std::tuple<T...>
 vector_of_args_to_tuple(const std::vector<TaskArg>& vector)
 {
     if (vector.size() != sizeof...(T)) {
-        throw std::runtime_error{"wrong size"};
+        throw GwasmError{"wrong size"};
     }
 
     auto out = std::tuple<T...>{};

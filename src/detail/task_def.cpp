@@ -1,4 +1,5 @@
 #include "../../include/gwasm/detail/task_def.hpp"
+#include "../../include/gwasm/error.hpp"
 
 #include <stdexcept>
 
@@ -56,7 +57,7 @@ adl_serializer<gwasm::detail::TaskArg>::from_json(
     gwasm::detail::TaskArg& task_arg)
 {
     if (!j.is_object()) {
-        throw std::runtime_error{"error parsing task arg: json not an object"};
+        throw gwasm::GwasmError{"error parsing task arg: json not an object"};
     }
 
     if (auto json_meta = j.find("meta"); json_meta != j.end()) {
@@ -70,7 +71,7 @@ adl_serializer<gwasm::detail::TaskArg>::from_json(
             gwasm::detail::TaskArgOutput{json_output->get<std::string>()};
     }
     else {
-        throw std::runtime_error{
+        throw gwasm::GwasmError{
             "invalid task arg json object: no meta, blob or output found"};
     }
 }
