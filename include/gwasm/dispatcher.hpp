@@ -9,6 +9,7 @@
 #include "args.hpp"
 #include "blob.hpp"
 #include "detail/args.hpp"
+#include "detail/execute.hpp"
 #include "detail/split.hpp"
 #include "detail/utils.hpp"
 
@@ -23,12 +24,6 @@ struct WorkItem
 
 namespace detail {
 
-// Execute == Callable<WorkItemResult(const T&...)>
-template <typename Execute>
-void
-execute_step(Execute&& execute, const ExecuteArgs& args)
-{}
-
 // Merge = Callable<void(
 //             const Args&,
 //             const Iterable<WorkItem<WorkItemDesc, WorkItemResult>>&)>
@@ -39,13 +34,11 @@ merge_step(Merge&& merge, const MergeArgs& args)
 
 } // namespace detail
 
-// Split = std::function<WorkItemDescs<WorkItemDescT...>(const Args&,
-// SplitContext&)>
-// Execute = std::function<WorkItemResult<WorkItemResultT...>(const
-// WorkItemDesc<WorkItemDescT...>&)>
-// Merge = std::function<void(const Args&,
-// const std::vector<WorkItem<WorkItemDesc<WorkItemDescT...>,
-// WorkItemResult<WorkItemResultT...>>>&)>
+// Split == Callable<Iterable<Tuple<T...>>(const Args&, SplitContext&)>
+// Execute == Callable<WorkItemResult(const T&...)>
+// Merge = Callable<void(
+//             const Args&,
+//             const Iterable<WorkItem<WorkItemDesc, WorkItemResult>>&)>
 template <typename Split, typename Execute, typename Merge>
 int
 run(int argc, char* argv[], Split&& split, Execute&& execute, Merge&& merge)
@@ -54,11 +47,15 @@ run(int argc, char* argv[], Split&& split, Execute&& execute, Merge&& merge)
     auto exit_code = int{0};
     return std::visit(
         detail::overloaded{
-            [&](const detail::SplitArgs& args) { split_step(split, args); },
-            [&](const detail::ExecuteArgs& args) {
-                execute_step(execute, args);
+            [split = std::move(split)](const detail::SplitArgs& args) {
+                split_step(std::move(split), args);
             },
-            [&](const detail::MergeArgs& args) { merge_step(merge, args); },
+            [execute = std::move(execute)](const detail::ExecuteArgs& args) {
+                execute_step(std::move(execute), args);
+            },
+            [merge = std::move(merge)](const detail::MergeArgs& args) {
+                merge_step(std::move(merge), args);
+            },
             [&](const int new_exit_code) { exit_code = new_exit_code; }},
         args);
     return exit_code;

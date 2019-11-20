@@ -1,5 +1,7 @@
 #include "../../include/gwasm/detail/task_def.hpp"
 
+#include <stdexcept>
+
 namespace gwasm::detail {
 
 TaskArg
@@ -53,17 +55,24 @@ adl_serializer<gwasm::detail::TaskArg>::from_json(
     const json& j,
     gwasm::detail::TaskArg& task_arg)
 {
-    std::visit(
-        gwasm::detail::overloaded{[&](gwasm::detail::TaskArgMeta& meta) {
-                                      meta.value = j.at("meta");
-                                  },
-                                  [&](gwasm::detail::TaskArgBlob& blob) {
-                                      j.at("blob").get_to(blob.path);
-                                  },
-                                  [&](gwasm::detail::TaskArgOutput& output) {
-                                      j.at("output").get_to(output.path);
-                                  }},
-        task_arg);
+    if (!j.is_object()) {
+        throw std::runtime_error{"error parsing task arg: json not an object"};
+    }
+
+    if (auto json_meta = j.find("meta"); json_meta != j.end()) {
+        task_arg = gwasm::detail::TaskArgMeta{*json_meta};
+    }
+    else if (auto json_blob = j.find("blob"); json_blob != j.end()) {
+        task_arg = gwasm::detail::TaskArgBlob{json_blob->get<std::string>()};
+    }
+    else if (auto json_output = j.find("output"); json_output != j.end()) {
+        task_arg =
+            gwasm::detail::TaskArgOutput{json_output->get<std::string>()};
+    }
+    else {
+        throw std::runtime_error{
+            "invalid task arg json object: no meta, blob or output found"};
+    }
 }
 
 } // namespace nlohmann

@@ -1,7 +1,5 @@
 #include <filesystem>
-#include <random>
 #include <set>
-#include <string>
 #include <tuple>
 #include <vector>
 
@@ -12,27 +10,9 @@
 #include "../include/gwasm/blob.hpp"
 #include "../include/gwasm/detail/split.hpp"
 
-namespace {
+#include "temp_dir_fixture.hpp"
 
 using json = nlohmann::json;
-
-struct TempDirFixture
-{
-    std::filesystem::path temp_dir;
-
-    TempDirFixture()
-        : temp_dir{std::filesystem::temp_directory_path() /
-                   ("gwasm_dispatcher_cpp_test_split_" +
-                    std::to_string(std::random_device{}()))}
-    {
-        std::filesystem::remove_all(temp_dir);
-        std::filesystem::create_directory(temp_dir);
-    }
-
-    ~TempDirFixture() { std::filesystem::remove_all(temp_dir); }
-};
-
-} // namespace
 
 BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
 {
@@ -60,7 +40,7 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
     };
 
     // when
-    split_step(my_splitter, split_args);
+    gwasm::detail::split_step(my_splitter, split_args);
 
     // then
     {
@@ -74,23 +54,20 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
         const auto actual_files =
             std::set(std::filesystem::directory_iterator{temp_dir},
                      std::filesystem::directory_iterator{});
-        BOOST_CHECK_EQUAL_COLLECTIONS(expected_files.begin(),
-                                      expected_files.end(),
-                                      actual_files.begin(),
-                                      actual_files.end());
+        BOOST_REQUIRE_EQUAL_COLLECTIONS(expected_files.begin(),
+                                        expected_files.end(),
+                                        actual_files.begin(),
+                                        actual_files.end());
     }
     {
         const auto expected_json = json::array(
-            {json::array(
-                 {json::object({{"blob", (temp_dir / "000000.bin").string()}}),
-                  json::object({{"meta", 0}}),
-                  json::object(
-                      {{"output", (temp_dir / "000001.bin").string()}})}),
+            {json::array({json::object({{"blob", temp_dir / "000000.bin"}}),
+                          json::object({{"meta", 0}}),
+                          json::object({{"output", temp_dir / "000001.bin"}})}),
              json::array(
-                 {json::object({{"blob", (temp_dir / "000002.bin").string()}}),
+                 {json::object({{"blob", temp_dir / "000002.bin"}}),
                   json::object({{"meta", 1}}),
-                  json::object(
-                      {{"output", (temp_dir / "000003.bin").string()}})})});
+                  json::object({{"output", temp_dir / "000003.bin"}})})});
         const auto actual_json = [&] {
             auto j = json{};
             std::ifstream{temp_dir / "tasks.json"} >> j;

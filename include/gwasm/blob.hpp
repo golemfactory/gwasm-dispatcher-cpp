@@ -35,6 +35,7 @@ private:
     std::filesystem::path m_path;
 
 public:
+    Blob() = default;
     explicit Blob(std::filesystem::path&& path);
 
     std::ifstream open() const;
@@ -50,6 +51,7 @@ private:
     std::filesystem::path m_path;
 
 public:
+    Output() = default;
     explicit Output(std::filesystem::path&& path);
 
     std::ofstream open() const;

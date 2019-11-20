@@ -20,8 +20,10 @@ libgwasm_dispatcher = library(
 
 the_test = executable(
   'the_test',
+  'test/execute.cpp',
   'test/main.cpp',
   'test/split.cpp',
+  'test/temp_dir_fixture.cpp',
   dependencies: [
     dependency('boost', modules: ['unit_test_framework']),
   ],

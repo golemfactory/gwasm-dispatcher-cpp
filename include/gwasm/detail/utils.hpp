@@ -1,6 +1,8 @@
 #ifndef GWASM_UTILS_HPP
 #define GWASM_UTILS_HPP
 
+#include <utility>
+
 namespace gwasm::detail {
 
 // template <typename T>
@@ -24,9 +26,10 @@ overloaded(Ts...)->overloaded<Ts...>;
 
 template <typename Tuple, typename F>
 void
-for_each_in_tuple(F&& f, const Tuple& tuple)
+for_each_in_tuple(F&& f, Tuple&& tuple)
 {
-    std::apply([&](const auto&... i) { (f(i), ...); }, tuple);
+    std::apply([&](auto&&... i) { (f(std::forward<decltype(i)>(i)), ...); },
+               std::forward<Tuple>(tuple));
 }
 
 // is_iterable
