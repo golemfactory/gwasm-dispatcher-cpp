@@ -1,15 +1,10 @@
 #ifndef GWASM_UTILS_HPP
 #define GWASM_UTILS_HPP
 
+#include <type_traits>
 #include <utility>
 
 namespace gwasm::detail {
-
-// template <typename T>
-// T copy(const T& obj)
-// {
-//     return obj;
-// }
 
 // overloaded
 
@@ -65,7 +60,7 @@ constexpr bool is_like_tuple_v = is_like_tuple<T>::value;
 
 // is_applicable
 
-// Does Tuple types match F arguments?
+// Tells if Tuple types match F arguments.
 template <typename F, typename Tuple, typename = void>
 struct is_applicable : std::false_type
 {};
