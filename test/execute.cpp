@@ -35,7 +35,7 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
         [](gwasm::Blob&& blob, const int i, gwasm::Output&& output) {
             const auto blob_contents = read_file_contents(blob.open());
             output.open() << blob_contents << i;
-            return std::make_tuple(i, output);
+            return std::make_tuple(i, std::move(output).to_blob());
         };
 
     const auto execute_args = gwasm::detail::ExecuteArgs{
@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
         }();
         const auto expected_task_out = json::array({
             json::object({{"meta", 5}}),
-            json::object({{"output", output_path}}),
+            json::object({{"blob", output_path}}),
         });
         BOOST_CHECK_EQUAL(task_out, expected_task_out);
     }
