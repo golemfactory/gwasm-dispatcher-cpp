@@ -28,8 +28,8 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
                     f << arg << '\n';
                 }
             }
-            out.push_back(std::make_tuple(
-                std::move(output).to_blob(), i, context.new_blob()));
+            out.push_back(
+                std::tuple{std::move(output).to_blob(), i, context.new_blob()});
         }
         return out;
     };

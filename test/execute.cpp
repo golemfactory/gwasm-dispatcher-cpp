@@ -35,7 +35,7 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
         [](gwasm::Blob&& blob, const int i, gwasm::Output&& output) {
             const auto blob_contents = read_file_contents(blob.open());
             output.open() << blob_contents << i;
-            return std::make_tuple(i, std::move(output).to_blob());
+            return std::tuple{i, std::move(output).to_blob()};
         };
 
     const auto execute_args = gwasm::detail::ExecuteArgs{
