@@ -32,7 +32,7 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
 {
     // given
     const auto my_executor =
-        [](const gwasm::Blob& blob, const int i, const gwasm::Output& output) {
+        [](gwasm::Blob&& blob, const int i, gwasm::Output&& output) {
             const auto blob_contents = read_file_contents(blob.open());
             output.open() << blob_contents << i;
             return std::make_tuple(i, output);

@@ -28,19 +28,19 @@ split_step(Split&& split, const SplitArgs& args)
     using Tuple = typename Iterable::value_type;
     static_assert(is_like_tuple_v<Tuple>);
 
-    const auto work_item_descs = [&] {
+    auto work_item_descs = [&] {
         auto split_context = SplitContext{args.work_dir};
         return split(args.args, split_context);
     }();
 
     auto json_tasks = json::array();
-    for (const auto& work_item_desc : work_item_descs) {
+    for (auto&& work_item_desc : std::move(work_item_descs)) {
         auto json_work_item_desc = json::array();
         for_each_in_tuple(
-            [&](const auto& i) {
-                json_work_item_desc.push_back(to_arg(i, {}));
+            [&](auto&& i) {
+                json_work_item_desc.push_back(to_arg(std::move(i), {}));
             },
-            work_item_desc);
+            std::move(work_item_desc));
         json_tasks.push_back(std::move(json_work_item_desc));
     }
 

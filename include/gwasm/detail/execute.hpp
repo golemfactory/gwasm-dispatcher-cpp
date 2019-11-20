@@ -36,8 +36,8 @@ template <typename Execute, typename... Args>
 void
 execute_step(Execute&& execute, const ExecuteArgs& args)
 {
-    static_assert(std::is_invocable_v<Execute, const Args&...>);
-    using ResultTuple = std::invoke_result_t<Execute, const Args&...>;
+    static_assert(std::is_invocable_v<Execute, Args&&...>);
+    using ResultTuple = std::invoke_result_t<Execute, Args&&...>;
     static_assert(is_like_tuple_v<ResultTuple>);
 
     const auto read_json_task = [](const std::filesystem::path& task_path) {
@@ -45,17 +45,18 @@ execute_step(Execute&& execute, const ExecuteArgs& args)
         std::ifstream{task_path} >> json_task;
         return json_task;
     };
-    const auto json_task_to_args_tuple = [](const json& json_task) {
+    const auto json_task_to_args_tuple = [](json&& json_task) {
         return vector_of_args_to_tuple<Args...>(
-            std::vector<TaskArg>(json_task));
+            std::vector<TaskArg>(std::move(json_task)));
     };
 
-    const auto result = std::apply(
+    auto result = std::apply(
         execute, json_task_to_args_tuple(read_json_task(args.task_path)));
 
     auto json_task_out = json::array();
     for_each_in_tuple(
-        [&](const auto& i) { json_task_out.push_back(to_arg(i, {})); }, result);
+        [&](auto&& i) { json_task_out.push_back(to_arg(std::move(i), {})); },
+        std::move(result));
     std::ofstream{args.task_out_path} << json_task_out;
 }
 
