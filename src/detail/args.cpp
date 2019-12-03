@@ -1,8 +1,8 @@
-#include "../../include/gwasm/detail/args.hpp"
+#include "../../include/gwasm/detail/step_args.hpp"
 
 namespace gwasm::detail {
 
-std::variant<SplitArgs, ExecuteArgs, MergeArgs, int>
+std::variant<SplitStepArgs, ExecuteStepArgs, MergeStepArgs, int>
 parse_args(int argc, char* argv[])
 {
     (void)argc;

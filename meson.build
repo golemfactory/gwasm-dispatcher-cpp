@@ -14,6 +14,7 @@ libgwasm_dispatcher = library(
   'gwasm_dispatcher',
   'src/blob.cpp',
   'src/detail/args.cpp',
+  'src/detail/json.cpp',
   'src/detail/task_def.cpp',
   'src/split.cpp',
 )
@@ -22,8 +23,10 @@ the_test = executable(
   'the_test',
   'test/execute.cpp',
   'test/main.cpp',
+  'test/merge.cpp',
   'test/split.cpp',
   'test/temp_dir_fixture.cpp',
+  'test/utils.cpp',
   dependencies: [
     dependency('boost', modules: ['unit_test_framework']),
   ],

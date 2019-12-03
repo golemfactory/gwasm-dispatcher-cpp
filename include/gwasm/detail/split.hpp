@@ -9,7 +9,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../split.hpp"
-#include "args.hpp"
+#include "step_args.hpp"
 #include "task_def.hpp"
 #include "utils.hpp"
 
@@ -20,7 +20,7 @@ using json = nlohmann::json;
 // Split == Callable<Iterable<Tuple<T...>>(const Args&, SplitContext&)>
 template <typename Split>
 void
-split_step(Split&& split, const SplitArgs& args)
+split_step(Split&& split, const SplitStepArgs& args)
 {
     static_assert(std::is_invocable_v<Split, const Args&, SplitContext&>);
     using Iterable = std::invoke_result_t<Split, const Args&, SplitContext&>;
@@ -36,11 +36,9 @@ split_step(Split&& split, const SplitArgs& args)
     auto json_tasks = json::array();
     for (auto&& work_item_desc : std::move(work_item_descs)) {
         auto json_work_item_desc = json::array();
-        for_each_in_tuple(
-            [&](auto&& i) {
-                json_work_item_desc.push_back(to_arg(std::move(i), {}));
-            },
-            std::move(work_item_desc));
+        for_each_in_tuple(std::move(work_item_desc), [&](auto&& i) {
+            json_work_item_desc.push_back(to_arg(std::move(i), {}));
+        });
         json_tasks.push_back(std::move(json_work_item_desc));
     }
 

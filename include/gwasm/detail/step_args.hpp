@@ -1,5 +1,5 @@
-#ifndef GWASM_DETAIL_ARGS_HPP
-#define GWASM_DETAIL_ARGS_HPP
+#ifndef GWASM_DETAIL_STEP_ARGS_HPP
+#define GWASM_DETAIL_STEP_ARGS_HPP
 
 #include <filesystem>
 #include <variant>
@@ -8,26 +8,26 @@
 
 namespace gwasm::detail {
 
-struct SplitArgs
+struct SplitStepArgs
 {
     std::filesystem::path work_dir;
     Args args;
 };
 
-struct ExecuteArgs
+struct ExecuteStepArgs
 {
     std::filesystem::path task_path;
     std::filesystem::path task_out_path;
 };
 
-struct MergeArgs
+struct MergeStepArgs
 {
     std::filesystem::path tasks_path;
     std::filesystem::path tasks_out_path;
     Args args;
 };
 
-std::variant<SplitArgs, ExecuteArgs, MergeArgs, int>
+std::variant<SplitStepArgs, ExecuteStepArgs, MergeStepArgs, int>
 parse_args(int argc, char* argv[]);
 
 } // namespace gwasm::detail

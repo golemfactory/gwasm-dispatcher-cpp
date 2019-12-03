@@ -3,11 +3,14 @@
 
 #include <filesystem>
 #include <string>
+#include <tuple>
 #include <variant>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
 #include "../blob.hpp"
+#include "../error.hpp"
 #include "utils.hpp"
 
 namespace gwasm::detail {
@@ -56,6 +59,21 @@ from_arg(Blob& blob, const TaskArg& arg, const std::filesystem::path&);
 
 void
 from_arg(Output& output, const TaskArg& arg, const std::filesystem::path&);
+
+template <typename Tuple>
+Tuple
+vector_of_args_to_tuple(const std::vector<TaskArg>& vector)
+{
+    if (vector.size() != std::tuple_size_v<Tuple>) {
+        throw GwasmError{"wrong size"};
+    }
+
+    auto out = Tuple{};
+    for_each_in_tuple(out, [it = vector.begin()](auto& i) mutable {
+        from_arg(i, *(it++), {});
+    });
+    return out;
+}
 
 } // namespace gwasm::detail
 

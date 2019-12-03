@@ -34,7 +34,7 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
         return out;
     };
 
-    const auto split_args = gwasm::detail::SplitArgs{
+    const auto split_args = gwasm::detail::SplitStepArgs{
         .work_dir = temp_dir,
         .args = {"arg1", "arg2"},
     };

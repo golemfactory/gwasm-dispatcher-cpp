@@ -1,6 +1,7 @@
-#ifndef GWASM_UTILS_HPP
-#define GWASM_UTILS_HPP
+#ifndef GWASM_DETAIL_UTILS_HPP
+#define GWASM_DETAIL_UTILS_HPP
 
+#include <iterator>
 #include <type_traits>
 #include <utility>
 
@@ -21,7 +22,7 @@ overloaded(Ts...)->overloaded<Ts...>;
 
 template <typename Tuple, typename F>
 void
-for_each_in_tuple(F&& f, Tuple&& tuple)
+for_each_in_tuple(Tuple&& tuple, F&& f)
 {
     std::apply([&](auto&&... i) { (f(std::forward<decltype(i)>(i)), ...); },
                std::forward<Tuple>(tuple));
@@ -49,8 +50,10 @@ template <typename T, typename = void>
 struct is_like_tuple : std::false_type
 {};
 
-// TODO: how to check for std::get or std::tuple_element, when a std::tuple can
+// Q: How to check for std::get or std::tuple_element, when a std::tuple can
 // be empty?
+// A: You don't. Look for example at
+// https://en.cppreference.com/w/cpp/language/structured_binding
 template <typename T>
 struct is_like_tuple<T, std::void_t<std::tuple_size<T>>> : std::true_type
 {};
@@ -78,4 +81,4 @@ constexpr bool is_applicable_v = is_applicable<F, Tuple>::value;
 
 } // namespace gwasm::detail
 
-#endif // GWASM_UTILS_HPP
+#endif // GWASM_DETAIL_UTILS_HPP

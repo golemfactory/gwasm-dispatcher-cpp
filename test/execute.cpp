@@ -10,23 +10,9 @@
 #include "../include/gwasm/detail/execute.hpp"
 
 #include "temp_dir_fixture.hpp"
+#include "utils.hpp"
 
 using json = nlohmann::json;
-
-namespace {
-
-std::string
-read_file_contents(std::ifstream&& file)
-{
-    file.seekg(0, std::ios::end);
-    const auto size = file.tellg();
-    auto buffer = std::string(size, '\0');
-    file.seekg(0);
-    file.read(buffer.data(), size);
-    return buffer;
-}
-
-} // namespace
 
 BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
 {
@@ -35,10 +21,10 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
         [](gwasm::Blob&& blob, const int i, gwasm::Output&& output) {
             const auto blob_contents = read_file_contents(blob.open());
             output.open() << blob_contents << i;
-            return std::tuple{i, std::move(output).to_blob()};
+            return std::tuple{i + 1, std::move(output).to_blob()};
         };
 
-    const auto execute_args = gwasm::detail::ExecuteArgs{
+    const auto execute_args = gwasm::detail::ExecuteStepArgs{
         .task_path = temp_dir / "task.json",
         .task_out_path = temp_dir / "task_out.json",
     };
@@ -74,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
             return task_out;
         }();
         const auto expected_task_out = json::array({
-            json::object({{"meta", 5}}),
+            json::object({{"meta", 6}}),
             json::object({{"blob", output_path}}),
         });
         BOOST_CHECK_EQUAL(task_out, expected_task_out);
