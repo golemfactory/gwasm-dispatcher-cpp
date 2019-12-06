@@ -17,6 +17,34 @@ libgwasm_dispatcher = library(
   'src/detail/step_args.cpp',
   'src/detail/task_def.cpp',
   'src/split.cpp',
+  install: true,
+)
+
+install_headers(
+  'include/gwasm.hpp',
+)
+install_headers(
+  'include/gwasm/blob.hpp',
+  'include/gwasm/dispatcher.hpp',
+  'include/gwasm/error.hpp',
+  'include/gwasm/split.hpp',
+  subdir: 'gwasm',
+)
+install_headers(
+  'include/gwasm/detail/execute.hpp',
+  'include/gwasm/detail/json.hpp',
+  'include/gwasm/detail/merge.hpp',
+  'include/gwasm/detail/split.hpp',
+  'include/gwasm/detail/step_args.hpp',
+  'include/gwasm/detail/task_def.hpp',
+  'include/gwasm/detail/utils.hpp',
+  subdir: 'gwasm/detail',
+)
+
+pkg = import('pkgconfig')
+pkg.generate(
+  libgwasm_dispatcher,
+  description: 'Implements gwasm runner interface',
 )
 
 the_test = executable(
