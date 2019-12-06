@@ -20,18 +20,22 @@ namespace gwasm::detail {
 using json = nlohmann::json;
 
 // Merge = Callable<void(
-//             const Args&,
-//             std::vector<std::pair<DescTuple, ResultTuple>>&&)>
-template <typename Merge, typename DescTuple, typename ResultTuple>
+//     int, char**,
+//     std::vector<std::pair<SplitResultTuple, ExecuteResultTuple>>&&)>
+template <typename SplitResultTuple,
+          typename ExecuteResultTuple,
+          typename Merge>
 void
-merge_step(Merge&& merge, const MergeStepArgs& args)
+merge_step(Merge merge, const MergeStepArgs& args)
 {
-    static_assert(is_like_tuple_v<DescTuple>);
-    static_assert(is_like_tuple_v<ResultTuple>);
+    static_assert(is_like_tuple_v<SplitResultTuple>);
+    static_assert(is_like_tuple_v<ExecuteResultTuple>);
     static_assert(
-        std::is_invocable_v<Merge,
-                            const Args&,
-                            std::vector<std::pair<DescTuple, ResultTuple>>&&>);
+        std::is_invocable_v<
+            Merge,
+            int,
+            char**,
+            std::vector<std::pair<SplitResultTuple, ExecuteResultTuple>>&&>);
 
     auto tasks = std::vector<std::vector<TaskArg>>(read_json(args.tasks_path));
     auto tasks_out =
@@ -41,20 +45,21 @@ merge_step(Merge&& merge, const MergeStepArgs& args)
         throw GwasmError{"unequal size of tasks and tasks_out"};
     }
 
-    auto results = std::vector<std::pair<DescTuple, ResultTuple>>{};
+    auto results =
+        std::vector<std::pair<SplitResultTuple, ExecuteResultTuple>>{};
     results.reserve(tasks.size());
     {
         auto tasks_it = tasks.begin();
         const auto tasks_last = tasks.end();
         auto tasks_out_it = tasks_out.begin();
         for (; tasks_it != tasks_last; ++tasks_it, ++tasks_out_it) {
-            results.push_back(
-                {vector_of_args_to_tuple<DescTuple>(std::move(*tasks_it)),
-                 vector_of_args_to_tuple<ResultTuple>(
-                     std::move(*tasks_out_it))});
+            results.push_back({vector_of_args_to_tuple<SplitResultTuple>(
+                                   std::move(*tasks_it)),
+                               vector_of_args_to_tuple<ExecuteResultTuple>(
+                                   std::move(*tasks_out_it))});
         }
     }
-    merge(args.args, std::move(results));
+    merge(args.argc, args.argv, std::move(results));
 }
 
 } // namespace gwasm::detail

@@ -17,20 +17,21 @@ namespace gwasm::detail {
 
 using json = nlohmann::json;
 
-// Split == Callable<Iterable<Tuple<T...>>(const Args&, SplitContext&)>
+// Split == Callable<Iterable<SplitResultTuple>(int, char**, SplitContext&)>
 template <typename Split>
 void
-split_step(Split&& split, const SplitStepArgs& args)
+split_step(Split split, const SplitStepArgs& args)
 {
-    static_assert(std::is_invocable_v<Split, const Args&, SplitContext&>);
-    using Iterable = std::invoke_result_t<Split, const Args&, SplitContext&>;
-    static_assert(is_iterable_v<Iterable>);
-    using Tuple = typename Iterable::value_type;
-    static_assert(is_like_tuple_v<Tuple>);
+    static_assert(std::is_invocable_v<Split, int, char**, SplitContext&>);
+    using SplitResultIterable =
+        std::invoke_result_t<Split, int, char**, SplitContext&>;
+    static_assert(is_iterable_v<SplitResultIterable>);
+    using SplitResultTuple = typename SplitResultIterable::value_type;
+    static_assert(is_like_tuple_v<SplitResultTuple>);
 
     auto work_item_descs = [&] {
         auto split_context = SplitContext{args.work_dir};
-        return split(args.args, split_context);
+        return split(args.argc, args.argv, split_context);
     }();
 
     auto json_tasks = json::array();

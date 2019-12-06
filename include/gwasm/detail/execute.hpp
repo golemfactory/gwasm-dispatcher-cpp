@@ -19,17 +19,18 @@ namespace gwasm::detail {
 
 using json = nlohmann::json;
 
-// Execute == Callable<Tuple<R...>(const Args&...)>
-template <typename Execute, typename... Args>
+// Execute == Callable<ExecuteResultTuple>(const SplitResultTupleArgs&...)>
+template <typename SplitResultTuple, typename Execute>
 void
-execute_step(Execute&& execute, const ExecuteStepArgs& args)
+execute_step(Execute execute, const ExecuteStepArgs& args)
 {
-    static_assert(std::is_invocable_v<Execute, Args&&...>);
-    using ResultTuple = std::invoke_result_t<Execute, Args&&...>;
-    static_assert(is_like_tuple_v<ResultTuple>);
+    static_assert(is_like_tuple_v<SplitResultTuple>);
+    static_assert(is_applicable_v<Execute, SplitResultTuple>);
+    using ExecuteResultTuple = apply_result_t<Execute, SplitResultTuple>;
+    static_assert(is_like_tuple_v<ExecuteResultTuple>);
 
     const auto json_task_to_args_tuple = [](json&& json_task) {
-        return vector_of_args_to_tuple<std::tuple<Args...>>(
+        return vector_of_args_to_tuple<SplitResultTuple>(
             std::vector<TaskArg>(std::move(json_task)));
     };
 

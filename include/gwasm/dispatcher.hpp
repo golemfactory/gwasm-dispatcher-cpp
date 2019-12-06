@@ -2,11 +2,13 @@
 #define GWASM_DISPATCHER_HPP
 
 #include <functional>
+#include <iostream>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
-#include "args.hpp"
 #include "blob.hpp"
 #include "detail/execute.hpp"
 #include "detail/merge.hpp"
@@ -16,31 +18,56 @@
 
 namespace gwasm {
 
-// Split == Callable<Iterable<Tuple<T...>>(const Args&, SplitContext&)>
-// Execute == Callable<WorkItemResult(const T&...)>
+// Split == Callable<Iterable<SplitResultTuple>(int, char**, SplitContext&)>
+// Execute == Callable<ExecuteResultTuple(const SplitResultTupleArgs&...)>
 // Merge = Callable<void(
-//             const Args&,
-//             const std::vector<std::pair<WorkItemDesc, WorkItemResult>>&)>
+//     int, char**,
+//     std::vector<std::pair<SplitResultTuple, ExecuteResultTuple>>&&)>
 template <typename Split, typename Execute, typename Merge>
 int
-run(int argc, char* argv[], Split&& split, Execute&& execute, Merge&& merge)
+run(int argc, char* argv[], Split split, Execute execute, Merge merge)
 {
+    // check plit
+    static_assert(std::is_invocable_v<Split, int, char**, SplitContext&>);
+    using SplitResultIterable =
+        std::invoke_result_t<Split, int, char**, SplitContext&>;
+    static_assert(detail::is_iterable_v<SplitResultIterable>);
+    using SplitResultTuple = typename SplitResultIterable::value_type;
+    static_assert(detail::is_like_tuple_v<SplitResultTuple>);
+
+    // check execute
+    static_assert(detail::is_applicable_v<Execute, SplitResultTuple>);
+    using ExecuteResultTuple =
+        detail::apply_result_t<Execute, SplitResultTuple>;
+    static_assert(detail::is_like_tuple_v<ExecuteResultTuple>);
+
+    // check merge
+    static_assert(
+        std::is_invocable_v<
+            Merge,
+            int,
+            char**,
+            std::vector<std::pair<SplitResultTuple, ExecuteResultTuple>>&&>);
+
+    // do it!
     const auto args = detail::parse_args(argc, argv);
     auto exit_code = int{0};
-    return std::visit(
-        detail::overloaded{
-            [split = std::move(split)](const detail::SplitStepArgs& args) {
-                split_step(std::move(split), args);
-            },
-            [execute =
-                 std::move(execute)](const detail::ExecuteStepArgs& args) {
-                execute_step(std::move(execute), args);
-            },
-            [merge = std::move(merge)](const detail::MergeStepArgs& args) {
-                merge_step(std::move(merge), args);
-            },
-            [&](const int new_exit_code) { exit_code = new_exit_code; }},
-        args);
+    std::visit(detail::overloaded{
+                   [split](const detail::SplitStepArgs& args) {
+                       detail::split_step(split, args);
+                   },
+                   [execute](const detail::ExecuteStepArgs& args) {
+                       detail::execute_step<SplitResultTuple>(execute, args);
+                   },
+                   [merge](const detail::MergeStepArgs& args) {
+                       detail::merge_step<SplitResultTuple, ExecuteResultTuple>(
+                           merge, args);
+                   },
+                   [&](const detail::Error& error) {
+                       std::cerr << "Error: " << error.message << '\n';
+                       exit_code = error.exit_code;
+                   }},
+               args);
     return exit_code;
 }
 

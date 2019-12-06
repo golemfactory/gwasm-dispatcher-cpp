@@ -4,6 +4,7 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 namespace gwasm::detail {
 
@@ -26,6 +27,17 @@ for_each_in_tuple(Tuple&& tuple, F&& f)
 {
     std::apply([&](auto&&... i) { (f(std::forward<decltype(i)>(i)), ...); },
                std::forward<Tuple>(tuple));
+}
+
+// extend_variant
+
+template <typename NewVariant, typename OldVariant>
+NewVariant
+extend_variant(OldVariant&& v)
+{
+    return std::visit(
+        [](auto&& i) -> NewVariant { return std::forward<decltype(i)>(i); },
+        std::forward<OldVariant>(v));
 }
 
 // is_iterable
@@ -78,6 +90,17 @@ struct is_applicable<
 
 template <typename F, typename Tuple>
 constexpr bool is_applicable_v = is_applicable<F, Tuple>::value;
+
+// apply_result
+
+template <typename F, typename Tuple>
+struct apply_result
+{
+    using type = decltype(std::apply(std::declval<F>(), std::declval<Tuple>()));
+};
+
+template <typename F, typename Tuple>
+using apply_result_t = typename apply_result<F, Tuple>::type;
 
 } // namespace gwasm::detail
 

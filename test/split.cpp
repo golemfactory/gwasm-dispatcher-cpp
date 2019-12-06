@@ -8,8 +8,11 @@
 #include <nlohmann/json.hpp>
 
 #include "../include/gwasm/blob.hpp"
+#include "../include/gwasm/detail/json.hpp"
 #include "../include/gwasm/detail/split.hpp"
 
+#include "args.hpp"
+#include "my_functions.hpp"
 #include "temp_dir_fixture.hpp"
 
 using json = nlohmann::json;
@@ -17,26 +20,11 @@ using json = nlohmann::json;
 BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
 {
     // given
-    const auto my_splitter = [](const gwasm::Args& args,
-                                gwasm::SplitContext& context) {
-        auto out = std::vector<std::tuple<gwasm::Blob, int, gwasm::Output>>{};
-        for (int i = 0; i < 2; ++i) {
-            auto output = context.new_blob();
-            {
-                auto f = output.open();
-                for (const auto& arg : args) {
-                    f << arg << '\n';
-                }
-            }
-            out.push_back(
-                std::tuple{std::move(output).to_blob(), i, context.new_blob()});
-        }
-        return out;
-    };
-
+    auto args = Args{{"arg1", "arg2"}};
     const auto split_args = gwasm::detail::SplitStepArgs{
+        .argc = args.c(),
+        .argv = args.v(),
         .work_dir = temp_dir,
-        .args = {"arg1", "arg2"},
     };
 
     // when
@@ -47,9 +35,7 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
         const auto expected_files = std::set{
             temp_dir / "tasks.json",
             temp_dir / "000000.bin",
-            // temp_dir / "000001.bin",
             temp_dir / "000002.bin",
-            // temp_dir / "000003.bin",
         };
         const auto actual_files =
             std::set(std::filesystem::directory_iterator{temp_dir},
@@ -68,11 +54,8 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
                  {json::object({{"blob", temp_dir / "000002.bin"}}),
                   json::object({{"meta", 1}}),
                   json::object({{"output", temp_dir / "000003.bin"}})})});
-        const auto actual_json = [&] {
-            auto j = json{};
-            std::ifstream{temp_dir / "tasks.json"} >> j;
-            return j;
-        }();
+        const auto actual_json =
+            gwasm::detail::read_json(temp_dir / "tasks.json");
         BOOST_CHECK_EQUAL(expected_json, actual_json);
     }
 }

@@ -21,9 +21,12 @@ libgwasm_dispatcher = library(
 
 the_test = executable(
   'the_test',
+  'test/args.cpp',
+  'test/dispatcher.cpp',
   'test/execute.cpp',
   'test/main.cpp',
   'test/merge.cpp',
+  'test/my_functions.cpp',
   'test/split.cpp',
   'test/temp_dir_fixture.cpp',
   'test/utils.cpp',

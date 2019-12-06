@@ -11,55 +11,25 @@
 #include "../include/gwasm/detail/merge.hpp"
 #include "../include/gwasm/detail/utils.hpp"
 
+#include "args.hpp"
+#include "my_functions.hpp"
 #include "temp_dir_fixture.hpp"
 #include "utils.hpp"
 
-namespace {
-
 using json = nlohmann::json;
 using gwasm::detail::for_each_in_tuple;
-
-template <typename T>
-T
-copy(const T& v)
-{
-    return v;
-}
-
-} // namespace
 
 BOOST_FIXTURE_TEST_CASE(merge, TempDirFixture)
 {
     // given
     const auto result_path = temp_dir / "result.txt";
 
-    using DescTuple = std::tuple<gwasm::Blob, int, gwasm::Output>;
-    using ResultTuple = std::tuple<int, gwasm::Blob>;
-    const auto my_merger =
-        [&](const gwasm::Args& args,
-            std::vector<std::pair<DescTuple, ResultTuple>>&& results) -> void {
-        auto out = std::ofstream{result_path};
-        for (const auto& arg : args) {
-            out << arg;
-        }
-
-        const auto task_arg_printer = gwasm::detail::overloaded{
-            [&](auto&& v) { out << v; },
-            [&](gwasm::Blob&& blob) { out << read_file_contents(blob.open()); },
-            [&](gwasm::Output&& output) {
-                out << read_file_contents(std::move(output).to_blob().open());
-            }};
-        for (auto&& result : std::move(results)) {
-            for_each_in_tuple(std::move(result), [&](auto&& task_args) {
-                for_each_in_tuple(std::move(task_args), task_arg_printer);
-            });
-        }
-    };
-
+    auto args = Args{{result_path.string(), "arg1", "arg2"}};
     const auto merge_args = gwasm::detail::MergeStepArgs{
+        .argc = args.c(),
+        .argv = args.v(),
         .tasks_path = temp_dir / "tasks.json",
         .tasks_out_path = temp_dir / "tasks_out.json",
-        .args = {"arg1", "arg2"},
     };
 
     const auto blob1_path = temp_dir / "blob1.bin";
@@ -97,8 +67,9 @@ BOOST_FIXTURE_TEST_CASE(merge, TempDirFixture)
     });
 
     // when
-    gwasm::detail::merge_step<decltype(my_merger)&, DescTuple, ResultTuple>(
-        my_merger, merge_args);
+    gwasm::detail::merge_step<std::tuple<gwasm::Blob, int, gwasm::Output>,
+                              std::tuple<int, gwasm::Blob>>(my_merger,
+                                                            merge_args);
 
     // then
     const auto result = read_file_contents(std::ifstream{result_path});

@@ -2,16 +2,16 @@
 #define GWASM_DETAIL_STEP_ARGS_HPP
 
 #include <filesystem>
+#include <string>
 #include <variant>
-
-#include "../args.hpp"
 
 namespace gwasm::detail {
 
 struct SplitStepArgs
 {
+    int argc;
+    char** argv;
     std::filesystem::path work_dir;
-    Args args;
 };
 
 struct ExecuteStepArgs
@@ -22,12 +22,19 @@ struct ExecuteStepArgs
 
 struct MergeStepArgs
 {
+    int argc;
+    char** argv;
     std::filesystem::path tasks_path;
     std::filesystem::path tasks_out_path;
-    Args args;
 };
 
-std::variant<SplitStepArgs, ExecuteStepArgs, MergeStepArgs, int>
+struct Error
+{
+    std::string message;
+    int exit_code = 1;
+};
+
+std::variant<SplitStepArgs, ExecuteStepArgs, MergeStepArgs, Error>
 parse_args(int argc, char* argv[]);
 
 } // namespace gwasm::detail

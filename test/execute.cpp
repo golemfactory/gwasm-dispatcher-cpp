@@ -9,6 +9,7 @@
 #include "../include/gwasm/blob.hpp"
 #include "../include/gwasm/detail/execute.hpp"
 
+#include "my_functions.hpp"
 #include "temp_dir_fixture.hpp"
 #include "utils.hpp"
 
@@ -17,13 +18,6 @@ using json = nlohmann::json;
 BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
 {
     // given
-    const auto my_executor =
-        [](gwasm::Blob&& blob, const int i, gwasm::Output&& output) {
-            const auto blob_contents = read_file_contents(blob.open());
-            output.open() << blob_contents << i;
-            return std::tuple{i + 1, std::move(output).to_blob()};
-        };
-
     const auto execute_args = gwasm::detail::ExecuteStepArgs{
         .task_path = temp_dir / "task.json",
         .task_out_path = temp_dir / "task_out.json",
@@ -41,9 +35,8 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
     });
 
     // when
-    gwasm::detail::
-        execute_step<decltype(my_executor)&, gwasm::Blob, int, gwasm::Output>(
-            my_executor, execute_args);
+    gwasm::detail::execute_step<std::tuple<gwasm::Blob, int, gwasm::Output>>(
+        my_executor, execute_args);
 
     // then
     {
