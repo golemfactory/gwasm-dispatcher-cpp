@@ -13,8 +13,8 @@ add_project_arguments('-DBOOST_ALL_DYN_LINK', language: 'cpp')
 libgwasm_dispatcher = library(
   'gwasm_dispatcher',
   'src/blob.cpp',
-  'src/detail/args.cpp',
   'src/detail/json.cpp',
+  'src/detail/step_args.cpp',
   'src/detail/task_def.cpp',
   'src/split.cpp',
 )
@@ -22,6 +22,7 @@ libgwasm_dispatcher = library(
 the_test = executable(
   'the_test',
   'test/args.cpp',
+  'test/detail/step_args.cpp',
   'test/dispatcher.cpp',
   'test/execute.cpp',
   'test/main.cpp',
