@@ -49,11 +49,8 @@ run(int argc, char* argv[])
 
 } // namespace
 
-// BOOST_FIXTURE_TEST_CASE(dispatcher, TempDirFixture)
-BOOST_AUTO_TEST_CASE(dispatcher)
+BOOST_FIXTURE_TEST_CASE(dispatcher, TempDirFixture)
 {
-    const auto temp_dir = std::filesystem::path{"/home/etam/tmp/gwasm_test/"};
-
     // when
     {
         // call split
