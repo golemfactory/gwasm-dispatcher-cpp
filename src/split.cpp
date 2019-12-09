@@ -30,7 +30,7 @@ SplitContext::SplitContext(std::filesystem::path work_dir)
 {}
 
 Output
-SplitContext::new_blob()
+SplitContext::new_file()
 {
     auto name = std::ostringstream{};
     name << std::setw(6) << std::setfill('0') << std::hex << m_id++ << ".bin";

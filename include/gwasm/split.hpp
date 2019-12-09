@@ -39,7 +39,7 @@ public:
     SplitContext(const SplitContext&) = delete;
     SplitContext& operator=(const SplitContext&) = delete;
 
-    Output new_blob();
+    Output new_file();
 };
 
 } // namespace gwasm

@@ -30,11 +30,11 @@ my_splitter(int argc, char* argv[], gwasm::SplitContext& context)
 {
     auto out = std::vector<std::tuple<gwasm::Blob, int, gwasm::Output>>{};
     for (int i = 0; i < argc; ++i) {
-        auto output = context.new_blob();
+        auto f = context.new_file();
         {
-            output.open() << argv[i];
+            f.open() << argv[i];
         }
-        out.push_back({std::move(output).to_blob(), i, context.new_blob()});
+        out.push_back({std::move(f).to_blob(), i, context.new_file()});
     }
     return out;
 }
