@@ -1,8 +1,11 @@
 # gwasm dispatcher cpp
 
-`gwasm_dispatcher_cpp` is a library that makes it easy to run an application with [gwasm runner](https://github.com/golemfactory/gwasm-runner/wiki/Wasm-runner-interface).
+`gwasm_dispatcher_cpp` is a library that makes it easy to run an application
+with
+[gwasm_runner](https://github.com/golemfactory/gwasm-runner/wiki/Wasm-runner-interface).
 
-There is also similar library for rust: [gwasm-dispatcher](https://golemfactory.github.io/gwasm-runner/gwasm_dispatcher/index.html)
+There is also a similar library for rust:
+[gwasm-dispatcher](https://golemfactory.github.io/gwasm-runner/gwasm_dispatcher/index.html).
 
 
 ## Usage
@@ -28,16 +31,24 @@ int main(int argc, char* argv[])
 }
 ```
 
-See [docs/more_detailed_readme.md](docs/more_detailed_readme.md) for more details.
+See [docs/more_detailed_readme.md](docs/more_detailed_readme.md) for more
+details.
 
-You can run the executable manually, according to the [gwasm runner interface](https://github.com/golemfactory/gwasm-runner/wiki/Wasm-runner-interface), or compile to wasm and run with [gwasm-runner](https://github.com/golemfactory/gwasm-runner#running-a-wasm-binary) itself.
+You can run the executable manually, according to the
+[gwasm runner_interface](https://github.com/golemfactory/gwasm-runner/wiki/Wasm-runner-interface),
+or compile to wasm and run with
+[gwasm-runner](https://github.com/golemfactory/gwasm-runner#running-a-wasm-binary)
+itself.
 
 
 ## Dependencies
 
-For using the library: just a compiler supporting C++17.
+For using the library:
 
-For running the test suite: [Boost](https://www.boost.org/).
+  - a compiler supporting C++17.
+  - [nlohmann/json](https://github.com/nlohmann/json)
+
+Additionally, For running the test suite: [Boost](https://www.boost.org/).
 
 
 ## Installation
@@ -53,7 +64,8 @@ sudo ninja -C build install
 
 ## Code style
 
-Code style is managed by [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
+Code style is managed by
+[clang-format](https://clang.llvm.org/docs/ClangFormat.html).
 
 
 ## Testing
