@@ -47,22 +47,25 @@ pkg.generate(
   description: 'Implements gwasm runner interface',
 )
 
-the_test = executable(
-  'the_test',
-  'test/args.cpp',
-  'test/detail/step_args.cpp',
-  'test/dispatcher.cpp',
-  'test/execute.cpp',
-  'test/main.cpp',
-  'test/merge.cpp',
-  'test/my_functions.cpp',
-  'test/split.cpp',
-  'test/temp_dir_fixture.cpp',
-  'test/utils.cpp',
-  dependencies: [
-    dependency('boost', modules: ['unit_test_framework']),
-  ],
-  link_with: libgwasm_dispatcher,
-)
 
-test('the_test', the_test)
+if host_machine.system() != 'emscripten'
+  the_test = executable(
+    'the_test',
+    'test/args.cpp',
+    'test/detail/step_args.cpp',
+    'test/dispatcher.cpp',
+    'test/execute.cpp',
+    'test/main.cpp',
+    'test/merge.cpp',
+    'test/my_functions.cpp',
+    'test/split.cpp',
+    'test/temp_dir_fixture.cpp',
+    'test/utils.cpp',
+    dependencies: [
+      dependency('boost', modules: ['unit_test_framework']),
+    ],
+    link_with: libgwasm_dispatcher,
+  )
+
+  test('the_test', the_test)
+endif

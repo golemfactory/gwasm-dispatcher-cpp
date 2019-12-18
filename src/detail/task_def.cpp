@@ -20,32 +20,33 @@ along with gwasm dispatcher cpp. If not, see <https://www.gnu.org/licenses/>.
 #include "../../include/gwasm/detail/task_def.hpp"
 #include "../../include/gwasm/error.hpp"
 
+#include <filesystem>
 #include <stdexcept>
 
 namespace gwasm::detail {
 
 TaskArg
-to_arg(const Blob& blob, const std::filesystem::path&)
+to_arg(const Blob& blob, const std::filesystem::path& base)
 {
-    return TaskArgBlob{blob.m_path.string()};
+    return TaskArgBlob{blob.m_absolute_path.lexically_relative(base)};
 }
 
 TaskArg
-to_arg(const Output& output, const std::filesystem::path&)
+to_arg(const Output& output, const std::filesystem::path& base)
 {
-    return TaskArgOutput{output.m_path.string()};
+    return TaskArgOutput{output.m_absolute_path.lexically_relative(base)};
 }
 
 void
-from_arg(Blob& blob, const TaskArg& arg, const std::filesystem::path&)
+from_arg(Blob& blob, const TaskArg& arg, const std::filesystem::path& base)
 {
-    blob = Blob{std::get<TaskArgBlob>(arg).path};
+    blob = Blob{base / std::get<TaskArgBlob>(arg).relative_path};
 }
 
 void
-from_arg(Output& output, const TaskArg& arg, const std::filesystem::path&)
+from_arg(Output& output, const TaskArg& arg, const std::filesystem::path& base)
 {
-    output = Output{std::get<TaskArgOutput>(arg).path};
+    output = Output{base / std::get<TaskArgOutput>(arg).relative_path};
 }
 
 } // namespace gwasm::detail
@@ -62,10 +63,10 @@ adl_serializer<gwasm::detail::TaskArg>::to_json(
                        j["meta"] = meta.value;
                    },
                    [&](const gwasm::detail::TaskArgBlob& blob) {
-                       j["blob"] = blob.path;
+                       j["blob"] = blob.relative_path;
                    },
                    [&](const gwasm::detail::TaskArgOutput& output) {
-                       j["output"] = output.path;
+                       j["output"] = output.relative_path;
                    }},
                task_arg);
 }

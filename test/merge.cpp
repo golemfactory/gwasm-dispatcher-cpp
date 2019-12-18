@@ -41,20 +41,28 @@ using gwasm::detail::for_each_in_tuple;
 BOOST_FIXTURE_TEST_CASE(merge, TempDirFixture)
 {
     // given
+    const auto input_dir = temp_dir / "in";
+    const auto output_dir = temp_dir / "out";
+    std::filesystem::create_directory(input_dir);
+    std::filesystem::create_directory(output_dir);
     const auto result_path = temp_dir / "result.txt";
 
     auto args = Args{{result_path.string(), "arg1", "arg2"}};
     const auto merge_args = gwasm::detail::MergeStepArgs{
         .argc = args.c(),
         .argv = args.v(),
-        .tasks_path = temp_dir / "tasks.json",
-        .tasks_out_path = temp_dir / "tasks_out.json",
+        .tasks_path = input_dir / "tasks.json",
+        .tasks_out_path = output_dir / "tasks_out.json",
     };
 
-    const auto blob1_path = temp_dir / "blob1.bin";
-    const auto blob2_path = temp_dir / "blob2.bin";
-    const auto output1_path = temp_dir / "output1.bin";
-    const auto output2_path = temp_dir / "output2.bin";
+    const auto blob1_name = "blob1.bin";
+    const auto blob1_path = input_dir / blob1_name;
+    const auto blob2_name = "blob2.bin";
+    const auto blob2_path = input_dir / blob2_name;
+    const auto output1_name = "output1.bin";
+    const auto output1_path = output_dir / output1_name;
+    const auto output2_name = "output2.bin";
+    const auto output2_path = output_dir / output2_name;
 
     std::ofstream{blob1_path} << "blob1";
     std::ofstream{blob2_path} << "blob2";
@@ -63,25 +71,25 @@ BOOST_FIXTURE_TEST_CASE(merge, TempDirFixture)
 
     std::ofstream{merge_args.tasks_path} << json::array({
         json::array({
-            json::object({{"blob", blob1_path}}),
+            json::object({{"blob", blob1_name}}),
             json::object({{"meta", 1}}),
-            json::object({{"output", output1_path}}),
+            json::object({{"output", output1_name}}),
         }),
         json::array({
-            json::object({{"blob", blob2_path}}),
+            json::object({{"blob", blob2_name}}),
             json::object({{"meta", 2}}),
-            json::object({{"output", output2_path}}),
+            json::object({{"output", output2_name}}),
         }),
     });
 
     std::ofstream{merge_args.tasks_out_path} << json::array({
         json::array({
             json::object({{"meta", 2}}),
-            json::object({{"blob", output1_path}}),
+            json::object({{"blob", output1_name}}),
         }),
         json::array({
             json::object({{"meta", 4}}),
-            json::object({{"blob", output2_path}}),
+            json::object({{"blob", output2_name}}),
         }),
     });
 
@@ -96,12 +104,10 @@ BOOST_FIXTURE_TEST_CASE(merge, TempDirFixture)
                                  "arg2"
                                  "blob1"
                                  "1"
-                                 "output1"
                                  "2"
                                  "output1"
                                  "blob2"
                                  "2"
-                                 "output2"
                                  "4"
                                  "output2";
     BOOST_CHECK_EQUAL(result, expected_result);

@@ -42,6 +42,12 @@ to_arg(const Blob&, const std::filesystem::path&);
 TaskArg
 to_arg(const Output&, const std::filesystem::path&);
 
+struct ExecuteStepArgs;
+
+template <typename SplitResultTuple, typename Execute>
+void
+execute_step(Execute execute, const detail::ExecuteStepArgs& args);
+
 } // namespace detail
 
 // read-only file access
@@ -51,11 +57,11 @@ private:
     friend detail::TaskArg detail::to_arg(const Blob&,
                                           const std::filesystem::path&);
 
-    std::filesystem::path m_path;
+    std::filesystem::path m_absolute_path;
 
 public:
     Blob() = default;
-    explicit Blob(std::filesystem::path&& path);
+    explicit Blob(std::filesystem::path&& absolute_path);
 
     std::ifstream open() const;
 };
@@ -66,12 +72,15 @@ class Output
 private:
     friend detail::TaskArg detail::to_arg(const Output&,
                                           const std::filesystem::path&);
+    template <typename SplitResultTuple, typename Execute>
+    friend void detail::execute_step(Execute execute,
+                                     const detail::ExecuteStepArgs& args);
 
-    std::filesystem::path m_path;
+    std::filesystem::path m_absolute_path;
 
 public:
     Output() = default;
-    explicit Output(std::filesystem::path&& path);
+    explicit Output(std::filesystem::path&& absolute_path);
 
     std::ofstream open() const;
 

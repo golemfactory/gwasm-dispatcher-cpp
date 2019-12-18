@@ -17,6 +17,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with gwasm dispatcher cpp. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <tuple>
@@ -37,20 +38,27 @@ using json = nlohmann::json;
 BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
 {
     // given
+    const auto input_dir = temp_dir / "in";
+    const auto output_dir = temp_dir / "out";
+    std::filesystem::create_directory(input_dir);
+    std::filesystem::create_directory(output_dir);
+
     const auto execute_args = gwasm::detail::ExecuteStepArgs{
-        .task_path = temp_dir / "task.json",
-        .task_out_path = temp_dir / "task_out.json",
+        .task_path = input_dir / "task.json",
+        .task_out_path = output_dir / "task_out.json",
     };
 
-    const auto blob_path = temp_dir / "blob.bin";
-    const auto output_path = temp_dir / "output.bin";
+    const auto blob_name = "blob.bin";
+    const auto output_name = "output.bin";
+    const auto blob_path = input_dir / blob_name;
+    const auto output_path = output_dir / output_name;
 
     std::ofstream{blob_path} << "Hello world!";
 
     std::ofstream{execute_args.task_path} << json::array({
-        json::object({{"blob", blob_path}}),
+        json::object({{"blob", blob_name}}),
         json::object({{"meta", 5}}),
-        json::object({{"output", output_path}}),
+        json::object({{"output", output_name}}),
     });
 
     // when
@@ -73,7 +81,7 @@ BOOST_FIXTURE_TEST_CASE(execute, TempDirFixture)
         }();
         const auto expected_task_out = json::array({
             json::object({{"meta", 6}}),
-            json::object({{"blob", output_path}}),
+            json::object({{"blob", output_name}}),
         });
         BOOST_CHECK_EQUAL(task_out, expected_task_out);
     }

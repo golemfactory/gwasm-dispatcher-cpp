@@ -28,13 +28,18 @@ along with gwasm dispatcher cpp. If not, see <https://www.gnu.org/licenses/>.
 std::vector<std::tuple<gwasm::Blob, int, gwasm::Output>>
 my_splitter(int argc, char* argv[], gwasm::SplitContext& context)
 {
+    if (argc < 1) {
+        throw std::runtime_error{"need at least output file path"};
+        // which is ignored in this case
+    }
+
     auto out = std::vector<std::tuple<gwasm::Blob, int, gwasm::Output>>{};
-    for (int i = 0; i < argc; ++i) {
+    for (int i = 1; i < argc; ++i) {
         auto f = context.new_file();
         {
             f.open() << argv[i];
         }
-        out.push_back({std::move(f).to_blob(), i, context.new_file()});
+        out.push_back({std::move(f).to_blob(), i - 1, context.new_file()});
     }
     return out;
 }
@@ -65,9 +70,7 @@ my_merger(int argc,
     const auto task_arg_printer = gwasm::detail::overloaded{
         [&](auto&& v) { out << v; },
         [&](gwasm::Blob&& blob) { out << read_file_contents(blob.open()); },
-        [&](gwasm::Output&& output) {
-            out << read_file_contents(std::move(output).to_blob().open());
-        }};
+        [&](gwasm::Output&&) {}};
     for (auto&& result : std::move(results)) {
         gwasm::detail::for_each_in_tuple(
             std::move(result), [&](auto&& task_args) {

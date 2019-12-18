@@ -43,12 +43,12 @@ struct TaskArgMeta
 
 struct TaskArgBlob
 {
-    std::string path;
+    std::string relative_path;
 };
 
 struct TaskArgOutput
 {
-    std::string path;
+    std::string relative_path;
 };
 
 using TaskArg = std::variant<TaskArgMeta, TaskArgBlob, TaskArgOutput>;
@@ -61,10 +61,10 @@ to_arg(const T& v, const std::filesystem::path&)
 }
 
 TaskArg
-to_arg(const Blob& blob, const std::filesystem::path&);
+to_arg(const Blob& blob, const std::filesystem::path& base);
 
 TaskArg
-to_arg(const Output& output, const std::filesystem::path&);
+to_arg(const Output& output, const std::filesystem::path& base);
 
 template <typename T>
 void
@@ -74,22 +74,23 @@ from_arg(T& v, const TaskArg& arg, const std::filesystem::path&)
 }
 
 void
-from_arg(Blob& blob, const TaskArg& arg, const std::filesystem::path&);
+from_arg(Blob& blob, const TaskArg& arg, const std::filesystem::path& base);
 
 void
-from_arg(Output& output, const TaskArg& arg, const std::filesystem::path&);
+from_arg(Output& output, const TaskArg& arg, const std::filesystem::path& base);
 
 template <typename Tuple>
 Tuple
-vector_of_args_to_tuple(const std::vector<TaskArg>& vector)
+vector_of_args_to_tuple(const std::vector<TaskArg>& vector,
+                        const std::filesystem::path& base)
 {
     if (vector.size() != std::tuple_size_v<Tuple>) {
         throw GwasmError{"wrong size"};
     }
 
     auto out = Tuple{};
-    for_each_in_tuple(out, [it = vector.begin()](auto& i) mutable {
-        from_arg(i, *(it++), {});
+    for_each_in_tuple(out, [it = vector.begin(), &base](auto& i) mutable {
+        from_arg(i, *(it++), base);
     });
     return out;
 }

@@ -39,7 +39,7 @@ using json = nlohmann::json;
 BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
 {
     // given
-    auto args = Args{{"arg1", "arg2"}};
+    auto args = Args{{"output", "arg1", "arg2"}};
     const auto split_args = gwasm::detail::SplitStepArgs{
         .argc = args.c(),
         .argv = args.v(),
@@ -66,13 +66,12 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
     }
     {
         const auto expected_json = json::array(
-            {json::array({json::object({{"blob", temp_dir / "000000.bin"}}),
+            {json::array({json::object({{"blob", "000000.bin"}}),
                           json::object({{"meta", 0}}),
-                          json::object({{"output", temp_dir / "000001.bin"}})}),
-             json::array(
-                 {json::object({{"blob", temp_dir / "000002.bin"}}),
-                  json::object({{"meta", 1}}),
-                  json::object({{"output", temp_dir / "000003.bin"}})})});
+                          json::object({{"output", "000001.bin"}})}),
+             json::array({json::object({{"blob", "000002.bin"}}),
+                          json::object({{"meta", 1}}),
+                          json::object({{"output", "000003.bin"}})})});
         const auto actual_json =
             gwasm::detail::read_json(temp_dir / "tasks.json");
         BOOST_CHECK_EQUAL(expected_json, actual_json);

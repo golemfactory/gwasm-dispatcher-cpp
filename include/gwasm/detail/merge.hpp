@@ -56,6 +56,9 @@ merge_step(Merge merge, const MergeStepArgs& args)
             char**,
             std::vector<std::pair<SplitResultTuple, ExecuteResultTuple>>&&>);
 
+    const auto input_dir = args.tasks_path.parent_path();
+    const auto output_dir = args.tasks_out_path.parent_path();
+
     auto tasks = std::vector<std::vector<TaskArg>>(read_json(args.tasks_path));
     auto tasks_out =
         std::vector<std::vector<TaskArg>>(read_json(args.tasks_out_path));
@@ -73,9 +76,9 @@ merge_step(Merge merge, const MergeStepArgs& args)
         auto tasks_out_it = tasks_out.begin();
         for (; tasks_it != tasks_last; ++tasks_it, ++tasks_out_it) {
             results.push_back({vector_of_args_to_tuple<SplitResultTuple>(
-                                   std::move(*tasks_it)),
+                                   std::move(*tasks_it), input_dir),
                                vector_of_args_to_tuple<ExecuteResultTuple>(
-                                   std::move(*tasks_out_it))});
+                                   std::move(*tasks_out_it), output_dir)});
         }
     }
     merge(args.argc, args.argv, std::move(results));

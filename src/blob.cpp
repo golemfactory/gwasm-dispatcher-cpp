@@ -19,32 +19,40 @@ along with gwasm dispatcher cpp. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../include/gwasm/blob.hpp"
 
+#include <system_error>
+
 namespace gwasm {
 
-Blob::Blob(std::filesystem::path&& path)
-    : m_path{std::move(path)}
+Blob::Blob(std::filesystem::path&& absolute_path)
+    : m_absolute_path{std::move(absolute_path)}
 {}
 
 std::ifstream
 Blob::open() const
 {
-    return {m_path};
+    if (!std::filesystem::is_regular_file(m_absolute_path)) {
+        throw std::filesystem::filesystem_error{
+            "file not found",
+            m_absolute_path,
+            std::make_error_code(std::errc::no_such_file_or_directory)};
+    }
+    return std::ifstream{m_absolute_path};
 }
 
-Output::Output(std::filesystem::path&& path)
-    : m_path{std::move(path)}
+Output::Output(std::filesystem::path&& absolute_path)
+    : m_absolute_path{std::move(absolute_path)}
 {}
 
 std::ofstream
 Output::open() const
 {
-    return {m_path};
+    return std::ofstream{m_absolute_path};
 }
 
 Blob
 Output::to_blob() &&
 {
-    return Blob{std::move(m_path)};
+    return Blob{std::move(m_absolute_path)};
 }
 
 } // namespace gwasm

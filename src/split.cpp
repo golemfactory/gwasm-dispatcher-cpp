@@ -25,9 +25,11 @@ along with gwasm dispatcher cpp. If not, see <https://www.gnu.org/licenses/>.
 namespace gwasm {
 
 SplitContext::SplitContext(std::filesystem::path work_dir)
-    : m_work_dir{work_dir}
+    : m_work_dir{std::filesystem::canonical(work_dir)}
     , m_id{0}
-{}
+{
+    std::filesystem::create_directories(m_work_dir);
+}
 
 Output
 SplitContext::new_file()

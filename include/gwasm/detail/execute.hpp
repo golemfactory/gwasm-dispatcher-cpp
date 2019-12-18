@@ -48,17 +48,29 @@ execute_step(Execute execute, const ExecuteStepArgs& args)
     using ExecuteResultTuple = apply_result_t<Execute, SplitResultTuple>;
     static_assert(is_like_tuple_v<ExecuteResultTuple>);
 
-    const auto json_task_to_args_tuple = [](json&& json_task) {
+    const auto input_dir = args.task_path.parent_path();
+    const auto output_dir = args.task_out_path.parent_path();
+
+    const auto json_task_to_args_tuple = [&input_dir](json&& json_task) {
         return vector_of_args_to_tuple<SplitResultTuple>(
-            std::vector<TaskArg>(std::move(json_task)));
+            std::vector<TaskArg>(std::move(json_task)), input_dir);
     };
 
-    auto result =
-        std::apply(execute, json_task_to_args_tuple(read_json(args.task_path)));
+    auto input = json_task_to_args_tuple(read_json(args.task_path));
+    for_each_in_tuple(
+        input,
+        overloaded{[&](Output& output) {
+                       output.m_absolute_path =
+                           output_dir /
+                           output.m_absolute_path.lexically_relative(input_dir);
+                   },
+                   [](auto&) {}});
+
+    auto result = std::apply(execute, std::move(input));
 
     auto json_task_out = json::array();
     for_each_in_tuple(std::move(result), [&](auto&& i) {
-        json_task_out.push_back(to_arg(std::move(i), {}));
+        json_task_out.push_back(to_arg(std::move(i), output_dir));
     });
     std::ofstream{args.task_out_path} << json_task_out;
 }

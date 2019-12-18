@@ -53,13 +53,8 @@ Additionally, For running the test suite: [Boost](https://www.boost.org/).
 
 ## Installation
 
-Use [meson](https://mesonbuild.com/) for building and installing:
-
-``` shell
-meson setup . build
-ninja -C build
-sudo ninja -C build install
-```
+Use [meson](https://mesonbuild.com/) for building and installing.
+See [example_app/README.md](example_app/README.md) for example usage.
 
 
 ## Code style
@@ -70,9 +65,8 @@ Code style is managed by
 
 ## Testing
 
-Run tests using ninja:
-
 ``` shell
+meson setup . build
 ninja -C build test
 ```
 
