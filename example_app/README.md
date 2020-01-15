@@ -8,8 +8,10 @@ gwasm_dispatcher_cpp library and then building an application with it.
 
 ## Compilation for native execution
 
+- create a destination directory, later called prefix path
+- run commands
 ``` shell
-prefix_path="${HOME}/gwasm_native_prefix"
+prefix_path="/a/path/to/prefix"
 cd ..
 meson setup . build --prefix "$prefix_path"
 ninja -C build install
@@ -24,8 +26,8 @@ ninja -C build_example_app install
 
 - cd ..
 - use meson >= 0.52
-- create a prefix path
-- add prefix/include/nlohmann/json.hpp
+- create a destination directory, later called gwasm_prefix path
+- add gwasm_prefix/include/nlohmann/json.hpp
 - create a `wasm.txt` file:
 ``` ini
 [paths]
@@ -47,7 +49,6 @@ cpu = 'wasm32'
 endian = 'little'
 ```
 - run commands
-
 ``` shell
 meson setup . build_wasm --cross-file wasm.txt -Ddefault_library=static
 ninja -C build_wasm install

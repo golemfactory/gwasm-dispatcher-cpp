@@ -54,7 +54,9 @@ Additionally, For running the test suite: [Boost](https://www.boost.org/).
 ## Installation
 
 Use [meson](https://mesonbuild.com/) for building and installing.
-See [example_app/README.md](example_app/README.md) for example usage.
+
+See [example_app/README.md](example_app/README.md) for usage with example
+application.
 
 
 ## Code style
