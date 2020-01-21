@@ -1,0 +1,48 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    # install clang (https://apt.llvm.org/) and dependencies
+    - run: |
+        curl https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main'
+        sudo apt update
+        sudo apt install clang-9 clang-tools-9 clang-format-9 libc++-9-dev libc++abi-9-dev nlohmann-json-dev
+
+    # check clang-format
+    - run: |
+        find . \( -name "*.cpp" -o -name "*.hpp" \) -type f -exec clang-format-9 -i {} +
+        git --no-pager diff --exit-code
+
+    # install meson
+    #- run: sudo apt install ninja-build meson  - works, but has too old versions
+    - uses: actions/setup-python@v1
+      with: {python-version: '3.x'}
+    - run: pip3 install meson ninja
+
+    # build and test
+    - run: meson setup build -Dcpp_args="-stdlib=libc++" -Dcpp_link_args="-stdlib=libc++"
+      env:
+        CC: clang-9
+        CXX: clang++-9
+    #- run: ninja -C build scan-build
+    - run: ninja -C build test
+
+    # upload logs
+    - uses: actions/upload-artifact@v1
+      if: failure()
+      with:
+        name: Linux_Meson_Log
+        path: build/meson-logs/meson-log.txt
+
+    - uses: actions/upload-artifact@v1
+      if: failure()
+      with:
+        name: Linux_Meson_Testlog
+        path: build/meson-logs/testlog.txt
