@@ -132,7 +132,7 @@ BOOST_FIXTURE_TEST_CASE(dispatcher, TempDirFixture)
     BOOST_TEST_CHECKPOINT("merged");
 
     // then
-    const auto result = read_file_contents(result_path);
+    const auto result = read_file_contents(std::ifstream{result_path});
     const auto expected_result = "arg1"
                                  "arg2"
                                  "arg1"

@@ -56,9 +56,9 @@ BOOST_FIXTURE_TEST_CASE(split, TempDirFixture)
             temp_dir / "000000.bin",
             temp_dir / "000002.bin",
         };
-        const auto actual_files =
-            std::set(std::filesystem::directory_iterator{temp_dir},
-                     std::filesystem::directory_iterator{});
+        const auto actual_files = std::set<std::filesystem::path>(
+            std::filesystem::directory_iterator{temp_dir},
+            std::filesystem::directory_iterator{});
         BOOST_REQUIRE_EQUAL_COLLECTIONS(expected_files.begin(),
                                         expected_files.end(),
                                         actual_files.begin(),
