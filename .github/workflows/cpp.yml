@@ -1,0 +1,36 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: opensuse/tumbleweed
+    steps:
+      # install clang and dependencies
+      - run: zypper install -y clang gcc-c++ git-core libboost_test-devel meson ninja nlohmann_json-devel scan-build tar
+
+      - uses: actions/checkout@v2
+
+      # check clang-format
+      - run: |
+          find . \( -name "*.cpp" -o -name "*.hpp" \) -type f -exec clang-format -i {} +
+          git --no-pager diff --exit-code
+
+      # build and test
+      - run: meson setup build
+      - run: ninja -C build test
+      - run: ninja -C build scan-build
+
+      # upload logs
+      - uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: Linux_Meson_Log
+          path: build/meson-logs/meson-log.txt
+
+      - uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: Linux_Meson_Testlog
+          path: build/meson-logs/testlog.txt
